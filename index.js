@@ -47,7 +47,7 @@ async function poll() {
         )
         return event.raw.topics[2].slice(26).toLowerCase() == account.slice(2).toLowerCase()
       })
-      console.log('events', events)
+      console.log('filtered events', events)
       events.forEach(event => {
         withdrawsQ.createJob(event).save();
       })
