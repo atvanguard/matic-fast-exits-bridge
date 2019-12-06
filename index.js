@@ -80,12 +80,14 @@ async function setup() {
     const amount = event.raw.data
     try {
       await client.setAsync(key, true)
+      console.log('here', amount, web3.utils.toBN(amount).gt(web3.utils.toBN(0)))
       if (web3.utils.toBN(amount).gt(web3.utils.toBN(0))) {
+        const nonce = await web3.eth.getTransactionCount(accounts[0], 'pending')
         console.log(`Transferring ${web3.utils.fromWei(amount)} to ${recipient}`)
         await childToRoot[event.address].mainErc20.methods.transfer(recipient, amount).send({
           from: accounts[0],
           gas: 100000,
-          nonce: await web3.eth.getTransactionCount(accounts[0], 'pending'),
+          nonce: nonce,
           gasPrice: web3.utils.toWei('10', 'gwei') })
       }
       console.log(`Processed ${key}`)
