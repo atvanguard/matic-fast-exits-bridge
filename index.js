@@ -38,9 +38,12 @@ async function poll() {
         { fromBlock, toBlock }
         // { filter: { to: account }, fromBlock, toBlock }
       )
-      // console.log('events', events)
+      console.log('events', events)
       events = events.filter(event => {
-        // console.log()
+        console.log(
+          event.raw.topics[2].slice(26).toLowerCase(),
+          account.slice(2).toLowerCase()
+        )
         return event.raw.topics[2].slice(26).toLowerCase() == account.slice(2).toLowerCase()
       })
       console.log('events', events)
