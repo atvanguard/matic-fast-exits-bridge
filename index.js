@@ -18,7 +18,6 @@ const withdrawsQ = new Queue(withdrawsQName, config.get('bee-q'));
 
 async function poll() {
   const toBlock = await childWeb3.eth.getBlockNumber()
-  console.log({ toBlock })
   let lastProcessed
   try {
     lastProcessed = await client.getAsync('lastProcessed')
@@ -27,7 +26,7 @@ async function poll() {
   } catch(e) {
     lastProcessed = 0
   }
-  const fromBlock = Math.max(config.get('fromBlock'), lastProcessed)
+  const fromBlock = Math.max(config.get('fromBlock'), lastProcessed + 1)
   console.log({ fromBlock, toBlock })
   if (fromBlock >= toBlock) return;
 
@@ -39,18 +38,16 @@ async function poll() {
         { fromBlock, toBlock }
         // { filter: { to: account }, fromBlock, toBlock }
       )
-      console.log('events', events)
+      // console.log('events', events)
       events = events.filter(event => {
-        console.log(
-          event.raw.topics[2].slice(26).toLowerCase(),
-          account.slice(2).toLowerCase()
-        )
         return event.raw.topics[2].slice(26).toLowerCase() == account.slice(2).toLowerCase()
-      })
-      console.log('filtered events', events)
-      events.forEach(event => {
+      }).forEach(event => {
         withdrawsQ.createJob(event).save();
       })
+      // console.log('filtered events', events)
+      // events.forEach(event => {
+      //   withdrawsQ.createJob(event).save();
+      // })
       await client.setAsync('lastProcessed', toBlock);
     } catch(e) {
       console.log(e)
