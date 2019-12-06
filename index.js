@@ -85,11 +85,14 @@ async function setup() {
         await childToRoot[event.address].mainErc20.methods.transfer(recipient, amount).send({
           from: accounts[0],
           gas: 100000,
-          nonce: nonce,
-          gasPrice: web3.utils.toWei('10', 'gwei') })
+          nonce,
+          gasPrice: web3.utils.toWei('10', 'gwei')
+        })
+        .on('transactionHash', (hash) => {
+          console.log(`Processed ${key}`, hash)
+          return done(null, key);
+        })
       }
-      console.log(`Processed ${key}`)
-      return done(null, key);
     } catch(e) {
       console.log('error', e)
       await client.setAsync(key, false)
