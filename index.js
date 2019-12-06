@@ -50,6 +50,7 @@ async function setup() {
   const abi = JSON.parse(JSON.stringify(config.get('contracts.erc20abi')))
 
   config.get('contracts.tokens').forEach(token => {
+    console.log(token)
     const mainErc20 = new web3.eth.Contract(abi, token.root)
     const childErc20 = new childWeb3.eth.Contract(abi, token.child)
     childToRoot[token.child] = { mainErc20, childErc20 }
