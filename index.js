@@ -52,7 +52,7 @@ async function setup() {
       if (web3.utils.toBN(amount).gt(web3.utils.toBN(0))) {
         console.log(`Transferring ${web3.utils.fromWei(amount)} to ${recipient}`)
         await childToRoot[event.address].methods.transfer(recipient, amount).send({
-          from: accounts[0], gas: 100000, nonce: await web3.eth.getTransactionCount(accounts[0], 'pending') })
+          from: accounts[0], gas: 100000, nonce: await web3.eth.getTransactionCount(accounts[0], 'pending'), gasPrice: web3.utils.toWei('10', 'gwei') })
       }
       console.log(`Processed ${key}`)
       return done(null, key);
