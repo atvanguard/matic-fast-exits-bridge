@@ -5,7 +5,8 @@
       "port": 6379
     }
   },
-  "fromBlock": 93530,
+  "fromBlock": 96494,
+  "pollSeconds": "5",
   "contracts": {
     "tokens": [
       {

@@ -6,6 +6,7 @@
     }
   },
   "fromBlock": 0,
+  "pollSeconds": "3",
   "contracts": {
     "tokens": [
       {
