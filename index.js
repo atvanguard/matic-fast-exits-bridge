@@ -14,6 +14,22 @@ let accounts
 const childToRoot = {}
 const withdrawsQName = 'withdraws'
 
+// function poll() {
+//   config.get('contracts.tokens').forEach(token => {
+//     const childErc20 = new childWeb3.eth.Contract(abi, token.child)
+//     // subscribe to events where we receive tokens
+//     childErc20.events.Transfer({ filter: { to: account }, fromBlock: config.get('fromBlock') }, (err) => {
+//       if (err) console.log(err)
+//     })
+//     .on('connected', function(subscriptionId) {
+//       console.log(`Listening to Transfer(,${account},) events on child contract ${childErc20.options.address}`);
+//     })
+//     .on('data', async event => {
+//       withdrawsQ.createJob(event).save();
+//     })
+//   })
+// }
+
 async function setup() {
   accounts = await web3.eth.getAccounts()
   let account = web3.utils.toChecksumAddress(accounts[0])
@@ -26,15 +42,17 @@ async function setup() {
     childToRoot[token.child] = mainErc20
 
     // subscribe to events where we receive tokens
-    childErc20.events.Transfer({ filter: { to: account }, fromBlock: config.get('fromBlock') }, (err) => {
-      if (err) console.log(err)
+    childErc20.events.Transfer({ filter: { to: account }, fromBlock: config.get('fromBlock') }, (err, event) => {
+      if (err) return console.log(err)
+      // console.log(event)
+      withdrawsQ.createJob(event).save();
     })
     .on('connected', function(subscriptionId) {
       console.log(`Listening to Transfer(,${account},) events on child contract ${childErc20.options.address}`);
     })
-    .on('data', async event => {
-      withdrawsQ.createJob(event).save();
-    })
+    // .on('data', async event => {
+    //   withdrawsQ.createJob(event).save();
+    // })
   })
 
 
