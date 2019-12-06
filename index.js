@@ -20,12 +20,14 @@ async function poll() {
   const toBlock = await childWeb3.eth.getBlockNumber()
   let lastProcessed
   try {
-    lastProcessed = parseInt(await client.getAsync('lastProcessed'));
+    lastProcessed = await client.getAsync('lastProcessed')
+    if (lastProcessed == null) lastProcessed = 0
+    else lastProcessed = parseInt(lastProcessed)
   } catch(e) {
     lastProcessed = 0
   }
-  console.log({ toBlock, lastProcessed })
   const fromBlock = Math.max(config.get('fromBlock'), lastProcessed)
+  console.log({ fromBlock, toBlock })
   if (fromBlock >= toBlock) return;
 
   config.get('contracts.tokens').forEach(async token => {
