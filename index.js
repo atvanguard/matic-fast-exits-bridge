@@ -18,7 +18,12 @@ const withdrawsQ = new Queue(withdrawsQName, config.get('bee-q'));
 
 async function poll() {
   const toBlock = await childWeb3.eth.getBlockNumber()
-  const lastProcessed = parseInt(await client.getAsync('lastProcessed'));
+  let lastProcessed
+  try {
+    lastProcessed = parseInt(await client.getAsync('lastProcessed'));
+  } catch(e) {
+    lastProcessed = 0
+  }
   console.log({ toBlock, lastProcessed })
   const fromBlock = Math.max(config.get('fromBlock'), lastProcessed)
   if (fromBlock >= toBlock) return;
