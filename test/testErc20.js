@@ -3,7 +3,7 @@ const Web3 = require('web3')
 const config = require('config')
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 
-let web3, childWeb3, bridge
+let web3, childWeb3
 const gas = 1000000
 
 describe('Bridge', function() {
@@ -11,7 +11,7 @@ describe('Bridge', function() {
 
   beforeEach(async function() {
     web3 = new Web3(new HDWalletProvider(process.env.MNEMONIC, process.env.MAIN_RPC));
-    childWeb3 = new Web3(new Web3.providers.WebsocketProvider(process.env.MATIC_RPC));
+    childWeb3 = new Web3(process.env.MATIC_RPC);
     accounts = await web3.eth.getAccounts()
     alice = web3.utils.toChecksumAddress(accounts[1])
   })
@@ -31,7 +31,7 @@ describe('Bridge', function() {
     const aliceInitialBalanceOnChild = web3.utils.toBN(await childContract.methods.balanceOf(alice).call())
 
     await childContract.methods.transfer(accounts[0], amount).send({ from: alice, gas })
-    await sleep(3 * 1000); // Wait for the bridge to give on main
+    await sleep(config.get('pollSeconds') * 2 * 1000); // Wait for the bridge to give on main
 
     const aliceNowBalance = web3.utils.toBN(await rootContract.methods.balanceOf(alice).call())
     assert.ok(aliceNowBalance.eq(aliceInitialBalance.add(web3.utils.toBN(amount))))
