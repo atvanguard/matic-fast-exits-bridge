@@ -31,7 +31,7 @@ describe('Bridge', function() {
     const aliceInitialBalanceOnChild = web3.utils.toBN(await childContract.methods.balanceOf(alice).call())
 
     await childContract.methods.transfer(accounts[0], amount).send({ from: alice, gas })
-    await sleep(2 * 1000); // Wait for the bridge to give on main
+    await sleep(3 * 1000); // Wait for the bridge to give on main
 
     const aliceNowBalance = web3.utils.toBN(await rootContract.methods.balanceOf(alice).call())
     assert.ok(aliceNowBalance.eq(aliceInitialBalance.add(web3.utils.toBN(amount))))

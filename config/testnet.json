@@ -9,9 +9,9 @@
   "contracts": {
     "tokens": [
       {
-        "root": "0xb4ee6879Ba231824651991C8F0a34Af4d6BFca6a",
+        "root": "0x28C8713DDe7F063Fdc4cA01aB2A8856e0F243Fec",
         "isErc20": true,
-        "child": "0x168ea52F1fAfe28d584F94357383d4f6FA8a749A"
+        "child": "0x9a93c912F4eFf0254d178a18ACD980C1B05b57b0"
       }
     ],
     "erc20abi": [
