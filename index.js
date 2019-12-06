@@ -32,15 +32,21 @@ async function poll() {
 
   config.get('contracts.tokens').forEach(async token => {
     const childErc20 = childToRoot[token.child].childErc20;
-    const events = await childErc20.getPastEvents(
-      'Transfer',
-      { filter: { to: account }, fromBlock, toBlock }
-    )
-    // console.log('events', events)
-    events.forEach(event => {
-      withdrawsQ.createJob(event).save();
-    })
-    await client.setAsync('lastProcessed', toBlock);
+    try {
+      console.log('account', account)
+      const events = await childErc20.getPastEvents(
+        'Transfer',
+        { fromBlock, toBlock }
+        // { filter: { to: account }, fromBlock, toBlock }
+      )
+      console.log('events', events)
+      events.forEach(event => {
+        withdrawsQ.createJob(event).save();
+      })
+      await client.setAsync('lastProcessed', toBlock);
+    } catch(e) {
+      console.log(e)
+    }
   })
 }
 
