@@ -14,7 +14,7 @@ npm run truffle migrate -- --reset
 ```
 Copy the output from above migration to [config file](./config/default.json#16) under `contracts` key.
 
-### Env
+### Env (testnet.env)
 ```
 export MNEMONIC=<>
 export MAIN_RPC='http://127.0.0.1:8545'
@@ -23,7 +23,8 @@ export MATIC_RPC='ws://127.0.0.1:8545' // should be websocket
 
 ### Run Bridge Server
 ```
-npm start
+source testnet.env
+NODE_ENV=testnet npm start
 ```
 
 ### Test

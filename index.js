@@ -41,18 +41,21 @@ async function setup() {
   withdrawsQ.process(async function (job, done) {
     console.log(`Processing job ${job.id}`);
     const event = job.data;
-    if (!shouldProcess(event)) return;
-    console.log(event)
+    let key = buildKey(event.blockNumber, event.logIndex)
+    const _shouldProcess = await shouldProcess(key)
+    if (!_shouldProcess) return done(null, key);
+    console.log(`key: ${key}`)
     const recipient = '0x' + event.raw.topics[1].slice(26)
     const amount = event.raw.data
-    let key
     try {
-      key = buildKey(event.blockNumber, event.logIndex)
       await client.setAsync(key, true)
       if (web3.utils.toBN(amount).gt(web3.utils.toBN(0))) {
         console.log(`Transferring ${web3.utils.fromWei(amount)} to ${recipient}`)
         await childToRoot[event.address].methods.transfer(recipient, amount).send({
-          from: accounts[0], gas: 100000, nonce: await web3.eth.getTransactionCount(accounts[0], 'pending'), gasPrice: web3.utils.toWei('10', 'gwei') })
+          from: accounts[0],
+          gas: 100000,
+          nonce: await web3.eth.getTransactionCount(accounts[0], 'pending'),
+          gasPrice: web3.utils.toWei('10', 'gwei') })
       }
       console.log(`Processed ${key}`)
       return done(null, key);
@@ -67,8 +70,7 @@ function buildKey(hash, index) {
   return `${hash}-${index}`
 }
 
-async function shouldProcess(event) {
-  const key = buildKey(event.transactionHash, event.logIndex)
+async function shouldProcess(key) {
   const _isProcessed = await client.getAsync(key)
   if (_isProcessed) console.log(`Key ${key} is already processed`)
   return !_isProcessed
