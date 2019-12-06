@@ -18,6 +18,7 @@ const withdrawsQ = new Queue(withdrawsQName, config.get('bee-q'));
 
 async function poll() {
   const toBlock = await childWeb3.eth.getBlockNumber()
+  console.log({ toBlock })
   let lastProcessed
   try {
     lastProcessed = await client.getAsync('lastProcessed')
