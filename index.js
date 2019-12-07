@@ -9,7 +9,6 @@ bluebird.promisifyAll(redis);
 const client = redis.createClient(config.get('bee-q.redis'))
 const web3 = new Web3(new HDWalletProvider(process.env.MNEMONIC, process.env.MAIN_RPC));
 const childWeb3 = new Web3(process.env.MATIC_RPC);
-// const childWeb3 = new Web3(new Web3.providers.WebsocketProvider(process.env.MATIC_RPC));
 let accounts, account
 
 const childToRoot = {}
@@ -30,7 +29,10 @@ async function poll() {
   }
   const fromBlock = Math.max(config.get('fromBlock'), lastProcessed + 1)
   console.log({ fromBlock, toBlock })
-  if (fromBlock >= toBlock) return;
+  if (fromBlock >= toBlock) {
+    await client.setAsync(lastProcessedKey, fromBlock);
+    return;
+  }
 
   config.get('contracts.tokens').forEach(async token => {
     const childErc20 = childToRoot[token.child].childErc20;
@@ -39,6 +41,7 @@ async function poll() {
         'Transfer',
         { fromBlock, toBlock }
       )
+      // console.log('events', events.length)
       events = events.filter(event => {
         return event.raw.topics[2].slice(26).toLowerCase() == account.slice(2).toLowerCase()
       }).forEach(event => {
@@ -56,7 +59,7 @@ async function setup() {
   account = web3.utils.toChecksumAddress(accounts[0])
   const abi = JSON.parse(JSON.stringify(config.get('contracts.erc20abi')))
 
-  config.get('contracts.tokens').forEach(token => {
+  config.get('contracts.tokens').forEach(async token => {
     console.log(token)
     const mainErc20 = new web3.eth.Contract(abi, token.root)
     const childErc20 = new childWeb3.eth.Contract(abi, token.child)

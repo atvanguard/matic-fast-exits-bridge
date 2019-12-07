@@ -5,7 +5,7 @@
       "port": 6379
     }
   },
-  "fromBlock": 157152,
+  "fromBlock": 0,
   "pollSeconds": 5,
   "gasPrice": "10",
   "contracts": {
