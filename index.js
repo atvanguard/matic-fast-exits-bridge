@@ -9,18 +9,19 @@ bluebird.promisifyAll(redis);
 const client = redis.createClient(config.get('bee-q.redis'))
 const web3 = new Web3(new HDWalletProvider(process.env.MNEMONIC, process.env.MAIN_RPC));
 const childWeb3 = new Web3(process.env.MATIC_RPC);
-// const childWeb3 = new Web3(new Web3.providers.WebsocketProvider(process.env.MATIC_RPC));
 let accounts, account
 
 const childToRoot = {}
-const withdrawsQName = 'withdraws'
+const network = process.env.NODE_ENV || 'development'
+const withdrawsQName = `${network}-withdraws`
 const withdrawsQ = new Queue(withdrawsQName, config.get('bee-q'));
 
 async function poll() {
+  const lastProcessedKey = `${network}-lastProcessed`
   const toBlock = await childWeb3.eth.getBlockNumber()
   let lastProcessed
   try {
-    lastProcessed = await client.getAsync('lastProcessed')
+    lastProcessed = await client.getAsync(lastProcessedKey)
     if (lastProcessed == null) lastProcessed = 0
     else lastProcessed = parseInt(lastProcessed)
   } catch(e) {
@@ -28,7 +29,10 @@ async function poll() {
   }
   const fromBlock = Math.max(config.get('fromBlock'), lastProcessed + 1)
   console.log({ fromBlock, toBlock })
-  if (fromBlock >= toBlock) return;
+  if (fromBlock >= toBlock) {
+    await client.setAsync(lastProcessedKey, fromBlock);
+    return;
+  }
 
   config.get('contracts.tokens').forEach(async token => {
     const childErc20 = childToRoot[token.child].childErc20;
@@ -36,19 +40,16 @@ async function poll() {
       let events = await childErc20.getPastEvents(
         'Transfer',
         { fromBlock, toBlock }
-        // { filter: { to: account }, fromBlock, toBlock }
       )
-      // console.log('events', events)
+      // console.log('events', events.length)
       events = events.filter(event => {
         return event.raw.topics[2].slice(26).toLowerCase() == account.slice(2).toLowerCase()
-      }).forEach(event => {
+      })
+      .forEach(event => {
+        // console.log(event)
         withdrawsQ.createJob(event).save();
       })
-      // console.log('filtered events', events)
-      // events.forEach(event => {
-      //   withdrawsQ.createJob(event).save();
-      // })
-      await client.setAsync('lastProcessed', toBlock);
+      await client.setAsync(lastProcessedKey, toBlock);
     } catch(e) {
       console.log(e)
     }
@@ -60,7 +61,7 @@ async function setup() {
   account = web3.utils.toChecksumAddress(accounts[0])
   const abi = JSON.parse(JSON.stringify(config.get('contracts.erc20abi')))
 
-  config.get('contracts.tokens').forEach(token => {
+  config.get('contracts.tokens').forEach(async token => {
     console.log(token)
     const mainErc20 = new web3.eth.Contract(abi, token.root)
     const childErc20 = new childWeb3.eth.Contract(abi, token.child)
@@ -78,7 +79,6 @@ async function setup() {
     const amount = event.raw.data
     try {
       await client.setAsync(key, true)
-      console.log('here', amount, web3.utils.toBN(amount).gt(web3.utils.toBN(0)))
       if (web3.utils.toBN(amount).gt(web3.utils.toBN(0))) {
         const nonce = await web3.eth.getTransactionCount(accounts[0], 'pending')
         console.log(`Transferring ${web3.utils.fromWei(amount)} to ${recipient}`)
@@ -86,7 +86,7 @@ async function setup() {
           from: accounts[0],
           gas: 100000,
           nonce,
-          gasPrice: web3.utils.toWei('10', 'gwei')
+          // gasPrice: web3.utils.toWei(config.get('gasPrice'), 'gwei')
         })
         .on('transactionHash', (hash) => {
           console.log(`Processed ${key}`, hash)
@@ -100,8 +100,8 @@ async function setup() {
   });
 }
 
-function buildKey(hash, index) {
-  return `${hash}-${index}`
+function buildKey(blockNumber, index) {
+  return `${network}-${blockNumber}-${index}`
 }
 
 async function shouldProcess(key) {
@@ -113,5 +113,6 @@ async function shouldProcess(key) {
 
 setup().then(() => {
   console.log('Bridge server initialized')
-  setInterval(poll, config.get('pollSeconds') * 1000); // every 5 seconds
+  console.log('Withdraw address is', account)
+  setInterval(poll, config.get('pollSeconds') * 1000);
 })

@@ -5,15 +5,15 @@
       "port": 6379
     }
   },
-  "fromBlock": 0,
+  "fromBlock": 8376815,
   "pollSeconds": 5,
-  "gasPrice": "10",
+  "gasPrice": "5",
   "contracts": {
     "tokens": [
       {
-        "root": "0x28C8713DDe7F063Fdc4cA01aB2A8856e0F243Fec",
+        "root": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
         "isErc20": true,
-        "child": "0x9a93c912F4eFf0254d178a18ACD980C1B05b57b0"
+        "child": "0x87490C22a6d79C02B235E8d2dD1e0a174a1ee158"
       }
     ],
     "erc20abi": [
