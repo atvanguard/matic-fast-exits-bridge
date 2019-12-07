@@ -23,8 +23,8 @@ export MATIC_RPC='ws://127.0.0.1:8545' // should be websocket
 
 ### Run Bridge Server
 ```
-source testnet.env
-npm start
+source production.env
+pm2 start ecosystem.config.js --env production
 ```
 
 ### Test

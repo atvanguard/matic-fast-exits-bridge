@@ -5,8 +5,8 @@
       "port": 6379
     }
   },
-  "fromBlock": 8376815,
-  "pollSeconds": 5,
+  "fromBlock": 8377684,
+  "pollSeconds": 15,
   "gasPrice": "5",
   "contracts": {
     "tokens": [
