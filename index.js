@@ -13,14 +13,16 @@ const childWeb3 = new Web3(process.env.MATIC_RPC);
 let accounts, account
 
 const childToRoot = {}
-const withdrawsQName = 'withdraws'
+const network = process.env.NODE_ENV || 'development'
+const withdrawsQName = `${network}-withdraws`
 const withdrawsQ = new Queue(withdrawsQName, config.get('bee-q'));
 
 async function poll() {
+  const lastProcessedKey = `${network}-lastProcessed`
   const toBlock = await childWeb3.eth.getBlockNumber()
   let lastProcessed
   try {
-    lastProcessed = await client.getAsync('lastProcessed')
+    lastProcessed = await client.getAsync(lastProcessedKey)
     if (lastProcessed == null) lastProcessed = 0
     else lastProcessed = parseInt(lastProcessed)
   } catch(e) {
@@ -36,19 +38,13 @@ async function poll() {
       let events = await childErc20.getPastEvents(
         'Transfer',
         { fromBlock, toBlock }
-        // { filter: { to: account }, fromBlock, toBlock }
       )
-      // console.log('events', events)
       events = events.filter(event => {
         return event.raw.topics[2].slice(26).toLowerCase() == account.slice(2).toLowerCase()
       }).forEach(event => {
         withdrawsQ.createJob(event).save();
       })
-      // console.log('filtered events', events)
-      // events.forEach(event => {
-      //   withdrawsQ.createJob(event).save();
-      // })
-      await client.setAsync('lastProcessed', toBlock);
+      await client.setAsync(lastProcessedKey, toBlock);
     } catch(e) {
       console.log(e)
     }
@@ -78,7 +74,6 @@ async function setup() {
     const amount = event.raw.data
     try {
       await client.setAsync(key, true)
-      console.log('here', amount, web3.utils.toBN(amount).gt(web3.utils.toBN(0)))
       if (web3.utils.toBN(amount).gt(web3.utils.toBN(0))) {
         const nonce = await web3.eth.getTransactionCount(accounts[0], 'pending')
         console.log(`Transferring ${web3.utils.fromWei(amount)} to ${recipient}`)
@@ -86,7 +81,7 @@ async function setup() {
           from: accounts[0],
           gas: 100000,
           nonce,
-          gasPrice: web3.utils.toWei('10', 'gwei')
+          gasPrice: web3.utils.toWei(config.get('gasPrice'), 'gwei')
         })
         .on('transactionHash', (hash) => {
           console.log(`Processed ${key}`, hash)
@@ -100,8 +95,8 @@ async function setup() {
   });
 }
 
-function buildKey(hash, index) {
-  return `${hash}-${index}`
+function buildKey(blockNumber, index) {
+  return `${network}-${blockNumber}-${index}`
 }
 
 async function shouldProcess(key) {
@@ -113,5 +108,6 @@ async function shouldProcess(key) {
 
 setup().then(() => {
   console.log('Bridge server initialized')
-  setInterval(poll, config.get('pollSeconds') * 1000); // every 5 seconds
+  console.log('Withdraw address is', account)
+  setInterval(poll, config.get('pollSeconds') * 1000);
 })
