@@ -43,7 +43,7 @@ async function poll() {
       )
       // console.log('events', events.length)
       events = events.filter(event => {
-        return event.raw.topics[2].slice(26).toLowerCase() == account.slice(2).toLowerCase()
+        return event.raw.topics[1] == account.slice(2).toLowerCase()
       })
       .forEach(event => {
         // console.log(event)

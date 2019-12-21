@@ -8,13 +8,16 @@
   "fromBlock": 0,
   "pollSeconds": "3",
   "contracts": {
-    "tokens": [
-      {
-        "root": "0xb4ee6879Ba231824651991C8F0a34Af4d6BFca6a",
-        "isErc20": true,
-        "child": "0x168ea52F1fAfe28d584F94357383d4f6FA8a749A"
+    "tokens": {
+      "incento": {
+        "root": "0x63700E03bF3066631efaE3e97D2ca0b475b83e43",
+        "child": "0x37E4164110Cedc245b81230f2Cf973D49FC2333C"
+      },
+      "chainbreakers": {
+        "root": "0x41D75792c6a24BD8d92051f1c65Ce7D2DB4AE15B",
+        "child": "0x9ca15514cB959EAD2D240f730Fd9192DfeA9251F"
       }
-    ],
+    },
     "erc20abi": [
       {
         "anonymous": false,
