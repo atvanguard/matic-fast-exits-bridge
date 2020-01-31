@@ -1,0 +1,9 @@
+{
+  "contracts": {
+    "tokens": {
+      "chainbreakers": {
+        "child": "0x6CB13CbfeE5Cd99eaca6FA9d1906B628af473279"
+      }
+    }
+  }
+}
